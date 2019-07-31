@@ -1,20 +1,19 @@
-# stage: 1
-FROM node:latest as react-build
+# base image
+FROM node:8.11.3
 
-# Create app directory
-WORKDIR /app
+# set working directory
+RUN mkdir /usr/src/app
+WORKDIR /usr/src/app
 
-COPY . ./
+# add `/usr/src/app/node_modules/.bin` to $PATH
+ENV PATH /usr/src/app/node_modules/.bin:$PATH
 
+# install and cache app dependencies
+COPY package.json /usr/src/app/package.json
+COPY yarn.lock /usr/src/app/yarn.lock
 RUN yarn install
-RUN yarn build
 
-# stage: 2 — the production environment
-FROM nginx:alpine
-COPY --from=react-build /app/build /usr/share/nginx/html
+# start app
+CMD ["npm", "start"]
 
-# To provide a http authentication comment out the next two lines
-#COPY conf/default.conf /etc/nginx/conf.d/default.conf
-#COPY conf/authnginx/htpasswd /etc/nginx/authnginx/htpasswd
-EXPOSE 80 2222
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
